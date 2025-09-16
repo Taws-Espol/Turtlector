@@ -1,10 +1,9 @@
 # Turtlector 
 
-**Turtle + Selector** - Un sistema inteligente de selección de tortugas usando IA
 
 ##  Descripción
 
-Turtlector es una aplicación que utiliza inteligencia artificial para la selección y análisis de tortugas. El proyecto combina tecnologías de vanguardia para ofrecer una experiencia interactiva y precisa en la identificación y clasificación de tortugas.
+Una versión tortuga del sobrero seleccionador para saber a que facultad y a que carrera eres mas posible de pertenecer.
 
 ##  Arquitectura del Proyecto
 
