@@ -1,0 +1,31 @@
+# Development Dockerfile for Turtlector Frontend
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy package files
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Create user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S reactjs -u 1001 && \
+    chown -R reactjs:nodejs /app
+
+USER reactjs
+
+# Expose Vite dev server port
+EXPOSE 5173
+
+# Run development server
+CMD ["pnpm", "run", "dev", "--host", "0.0.0.0"]
