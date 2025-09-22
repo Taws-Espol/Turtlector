@@ -1,0 +1,3 @@
+from services.whisper_service import grabar_y_transcribir_audio
+
+grabar_y_transcribir_audio()
