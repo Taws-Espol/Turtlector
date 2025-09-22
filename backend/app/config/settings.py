@@ -1,6 +1,7 @@
 import os
 from typing import List
-from pydantic import BaseSettings, validator
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -15,18 +16,14 @@ class Settings(BaseSettings):
     reload: bool = False
     
     # CORS configuration
-    cors_origins: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://frontend",
-        "http://localhost"
-    ]
+    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://frontend", "http://localhost"]
     cors_credentials: bool = True
     cors_methods: List[str] = ["*"]
     cors_headers: List[str] = ["*"]
     
     # API Keys
     gemini_api_key: str = ""
+    openai_api_key: str = ""
     
     # Whisper configuration
     whisper_model: str = "base"
@@ -109,23 +106,18 @@ class Settings(BaseSettings):
     
 
 
-    @validator("cors_origins", pre=True)
-    def assemble_cors_origins(cls, v):
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
-    
-    @validator("upload_dir")
+
+    @field_validator("upload_dir")
+    @classmethod
     def create_upload_dir(cls, v):
         os.makedirs(v, exist_ok=True)
         return v
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-        env_prefix = ""
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "env_prefix": ""
+    }
 
 
 # Create settings instance
