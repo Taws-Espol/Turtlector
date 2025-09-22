@@ -1,19 +1,20 @@
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import os
 import shutil
 from pathlib import Path
-
+from services.whisper_service import grabar_y_transcribir_audio
 # --- Importar Gemini ---
 from app.services.gemini_service import analyze_image_with_gemini
 
-# --- Suponiendo que tienes la configuración del directorio de subidas ---
+# --- Suponiendo que tienes la configuraciï¿½n del directorio de subidas ---
 # la variable UPLOAD_DIR debe estar configurada
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 
 
 app = FastAPI(
     title="Turtlector API",
-    description="API para el proyecto Turtlector que interactúa con IA.",
+    description="API para el proyecto Turtlector que interactï¿½a con IA.",
     version="1.0.0"
 )
 
@@ -22,7 +23,7 @@ app = FastAPI(
 @app.post("/test/analyze-image", tags=["Tests"])
 async def test_analyze_image_endpoint(file: UploadFile = File(...)):
     """
-    Endpoint de prueba para subir una imagen y obtener su análisis con Gemini.
+    Endpoint de prueba para subir una imagen y obtener su anï¿½lisis con Gemini.
     """
     # Crear el directorio de subidas si no existe
     upload_path = Path(UPLOAD_DIR)
@@ -38,9 +39,9 @@ async def test_analyze_image_endpoint(file: UploadFile = File(...)):
 
         # -------------------------------------------------------------------
         # DEFINIR EL PROMPT QUE QUIERES USAR PARA LA PRUEBA
-        # TODO: Reemplaza este prompt con la pregunta específica
-        # Por ejemplo: "¿Qué carrera universitaria se relaciona con esta imagen?"
-        # o "Describe la personalidad de alguien que dibujaría esto."
+        # TODO: Reemplaza este prompt con la pregunta especï¿½fica
+        # Por ejemplo: "ï¿½Quï¿½ carrera universitaria se relaciona con esta imagen?"
+        # o "Describe la personalidad de alguien que dibujarï¿½a esto."
         test_prompt = "Describe detalladamente lo que ves en esta imagen."
         # -------------------------------------------------------------------
 
@@ -64,3 +65,4 @@ async def test_analyze_image_endpoint(file: UploadFile = File(...)):
         # Eliminar archivo despues de eliminar
         if temp_file_path.exists():
             os.remove(temp_file_path)
+
