@@ -8,10 +8,11 @@ from datetime import datetime
 
 from app.config.settings import settings
 from app.routers import chat, transcription
-from app.services.gemini_service import analyze_image_with_gemini
+from app.services.gemini_service import analyze_image_with_gemini, check_gemini_health
 from app.models.schemas import (
     ImageAnalysisRequest,
     ImageAnalysisResponse,
+    ImageAnalysisMetadata,
     HealthResponse,
     ErrorResponse
 )
@@ -75,6 +76,29 @@ async def health_check():
         version=settings.app_version
     )
 
+@app.get("/health/gemini", tags=["Health"])
+async def gemini_health_check():
+    """
+    Verifica el estado específico del servicio Gemini AI.
+    
+    Returns:
+        Estado del servicio Gemini con detalles de configuración
+    """
+    health_result = check_gemini_health()
+    
+    # Retornar código HTTP apropiado según el estado
+    if health_result["status"] == "unhealthy":
+        raise HTTPException(
+            status_code=503, 
+            detail={
+                "service": "gemini",
+                "status": "unhealthy",
+                "error": health_result["details"].get("error", "Unknown error")
+            }
+        )
+    
+    return health_result
+
 @app.post("/analyze-image", response_model=ImageAnalysisResponse, tags=["Image Analysis"])
 async def analyze_image_endpoint(
     file: UploadFile = File(...),
@@ -82,41 +106,100 @@ async def analyze_image_endpoint(
 ):
     """
     Analiza una imagen usando Gemini AI.
+    
+    - **file**: Archivo de imagen a analizar (formatos: JPG, JPEG, PNG, GIF, BMP, WEBP)
+    - **prompt**: Texto que describe qué análisis realizar sobre la imagen
+    
+    Returns:
+        Respuesta estructurada con el análisis, metadatos y manejo de errores
+        
+    Example Response:
+        ```json
+        {
+            "success": true,
+            "analysis": "Esta imagen muestra un laboratorio de química...",
+            "filename": "lab-image.jpg",
+            "error": null,
+            "error_code": null,
+            "metadata": {
+                "image_size": [1920, 1080],
+                "image_format": "JPEG",
+                "file_size": 245760,
+                "prompt_length": 95,
+                "model": "gemini-1.5-flash"
+            }
+        }
+        ```
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="No se proporcionó archivo")
 
+    # Validar formato de archivo
+    file_extension = Path(file.filename).suffix.lower()
+    if file_extension not in {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Formato de archivo no soportado: {file_extension}. Formatos válidos: JPG, JPEG, PNG, GIF, BMP, WEBP"
+        )
+
     upload_path = Path(settings.upload_dir)
     upload_path.mkdir(parents=True, exist_ok=True)
 
-    temp_file_path = upload_path / file.filename
+    # Generar nombre único para evitar colisiones
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_filename = f"{timestamp}_{file.filename}"
+    temp_file_path = upload_path / unique_filename
 
     try:
+        # Guardar archivo temporalmente
         with temp_file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+        # Analizar imagen con Gemini
         analysis_result = analyze_image_with_gemini(
             image_path=str(temp_file_path),
             prompt=prompt
         )
 
-        if analysis_result is None:
-            raise HTTPException(
-                status_code=500,
-                detail="El servicio de Gemini no pudo procesar la imagen."
-            )
+        # Convertir metadatos del resultado
+        metadata = None
+        if analysis_result.get("metadata"):
+            metadata = ImageAnalysisMetadata(**analysis_result["metadata"])
 
-        return ImageAnalysisResponse(
+        # Crear respuesta
+        response = ImageAnalysisResponse(
+            success=analysis_result["success"],
+            analysis=analysis_result["analysis"],
             filename=file.filename,
-            analysis=analysis_result
+            error=analysis_result["error"],
+            error_code=analysis_result["error_code"],
+            metadata=metadata
         )
 
+        # Si no fue exitoso, usar código de error HTTP apropiado
+        if not analysis_result["success"]:
+            if analysis_result["error_code"] == "FILE_NOT_FOUND":
+                raise HTTPException(status_code=404, detail=analysis_result["error"])
+            elif analysis_result["error_code"] == "UNSUPPORTED_FORMAT":
+                raise HTTPException(status_code=400, detail=analysis_result["error"])
+            elif analysis_result["error_code"] in ["EMPTY_RESPONSE", "IMAGE_PROCESSING_ERROR"]:
+                raise HTTPException(status_code=422, detail=analysis_result["error"])
+            else:
+                raise HTTPException(status_code=500, detail=analysis_result["error"])
+
+        return response
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando imagen: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error interno procesando imagen: {str(e)}")
 
     finally:
         if temp_file_path.exists():
-            os.remove(temp_file_path)
+            try:
+                os.remove(temp_file_path)
+            except OSError:
+                pass  # Ignorar errores al eliminar archivo temporal
 
 @app.post("/test/analyze-image", response_model=ImageAnalysisResponse, tags=["Tests"])
 async def test_analyze_image_endpoint(file: UploadFile = File(...)):

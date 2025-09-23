@@ -37,9 +37,22 @@ class ImageAnalysisRequest(BaseModel):
     prompt: str = Field(..., description="Prompt for image analysis")
 
 
+class ImageAnalysisMetadata(BaseModel):
+    image_path: str = Field(..., description="Path to the analyzed image")
+    image_size: Optional[tuple] = Field(None, description="Image dimensions (width, height)")
+    image_format: Optional[str] = Field(None, description="Image format (JPEG, PNG, etc.)")
+    file_size: Optional[int] = Field(None, description="File size in bytes")
+    prompt_length: int = Field(..., description="Length of the prompt")
+    model: str = Field(..., description="Model used for analysis")
+
+
 class ImageAnalysisResponse(BaseModel):
-    analysis: str = Field(..., description="Analysis result from Gemini")
+    success: bool = Field(..., description="Whether the analysis was successful")
+    analysis: Optional[str] = Field(None, description="Analysis result from Gemini")
     filename: str = Field(..., description="Uploaded filename")
+    error: Optional[str] = Field(None, description="Error message if analysis failed")
+    error_code: Optional[str] = Field(None, description="Error code for programmatic handling")
+    metadata: Optional[ImageAnalysisMetadata] = Field(None, description="Analysis metadata")
 
 
 class HealthResponse(BaseModel):
