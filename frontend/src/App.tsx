@@ -9,28 +9,25 @@ function App() {
 
   const handleMicrophoneClick = () => {
     setAnimationState(prev => {
-      if (prev === 'standby') return 'loading'   // reposo -> escuchando
-      if (prev === 'loading') return 'talking'   // escuchando -> hablando
-      return 'standby'                           // hablando -> reposo
+      if (prev === 'standby') return 'loading'   // primer click -> escuchando (MANO.glb)
+      if (prev === 'loading') return 'talking'   // segundo click -> hablando (Talking.glb)
+      if (prev === 'talking') return 'loading'   // tercer click -> escuchando otra vez (MANO.glb)
+      return 'standby'                           // esto no debería pasar, pero por seguridad
     })
   }
 
   return (
     <div className="turtlector-app">
-      {/* Header */}
       <header className="header">
         <h1 className="app-title">Turtlector</h1>
         <div className="logo">taws</div>
       </header>
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Modelo 3D de la tortuga */}
         <div className="tortuga-3d-container">
           <Scene3D animationState={animationState} />
         </div>
 
-        {/* Microphone Button */}
         <button
           className={`microphone-button ${animationState === 'loading' ? 'recording' : ''}`}
           onClick={handleMicrophoneClick}

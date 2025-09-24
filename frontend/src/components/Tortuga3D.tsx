@@ -11,28 +11,29 @@ interface Tortuga3DProps {
 
 const animationActionPriority: Record<AnimationState, string[]> = {
   standby: ['Standby', 'idle', 'default'],
-  loading: ['Mano', 'MANO', 'Loading', 'Cargando', 'loading', 'idle', 'default'],
-  talking: ['Talking', 'talk', 'speak', 'idle', 'default'],
+  loading: ['CARGANDO', 'cargando', 'Jump', 'loading', 'idle', 'default'], // cargando.glb para escuchar
+  talking: ['Mano', 'MANO', 'Talking', 'talk', 'speak', 'idle', 'default'], // Talking.glb para hablar
 }
 
 const Tortuga3D: React.FC<Tortuga3DProps> = ({ animationState = 'standby' }) => {
   const groupRef = useRef<Group>(null)
 
+  // Cargar los 3 modelos correctos
   const { scene: standbyScene, animations: standbyAnimations } = useGLTF('/Standby.glb')
-  const { scene: loadingScene, animations: loadingAnimations } = useGLTF('/MANO.glb')
-  const { scene: talkingScene, animations: talkingAnimations } = useGLTF('/Talking.glb')
+  const { scene: loadingScene, animations: loadingAnimations } = useGLTF('/cargando.glb') // Para escuchar
+  const { scene: talkingScene, animations: talkingAnimations } = useGLTF('/MANO.glb') // Para hablar
 
   // Clonamos las escenas una sola vez para que no se pisen entre estados
   const sceneByState = useMemo(() => ({
     standby: standbyScene.clone(),
-    loading: loadingScene.clone(),
-    talking: talkingScene.clone(),
+    loading: loadingScene.clone(), // cargando.glb cuando está escuchando
+    talking: talkingScene.clone(), // Talking.glb cuando está hablando
   }), [standbyScene, loadingScene, talkingScene])
 
   const animationsByState = useMemo(() => ({
     standby: standbyAnimations,
-    loading: loadingAnimations,
-    talking: talkingAnimations,
+    loading: loadingAnimations, // Animaciones de cargando.glb
+    talking: talkingAnimations, // Animaciones de Talking.glb
   }), [standbyAnimations, loadingAnimations, talkingAnimations])
 
   const currentScene = sceneByState[animationState]
@@ -92,8 +93,9 @@ const Tortuga3D: React.FC<Tortuga3DProps> = ({ animationState = 'standby' }) => 
   )
 }
 
+// Precargar los 3 modelos correctos
 useGLTF.preload('/Standby.glb')
-useGLTF.preload('/MANO.glb')
+useGLTF.preload('/cargando.glb')
 useGLTF.preload('/Talking.glb')
 
 export default Tortuga3D
