@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Scene3D from './components/Scene3D'
 import './App.css'
 
 function App() {
@@ -18,13 +19,9 @@ function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Logo taws */}
-        <div className="logo-container">
-          <img 
-            src="/LogoTaws.png" 
-            alt="Taws Logo" 
-            className="taws-logo-image"
-          />
+        {/* Modelo 3D de la tortuga */}
+        <div className="tortuga-3d-container">
+          <Scene3D isTalking={isRecording} />
         </div>
 
         {/* Microphone Button */}

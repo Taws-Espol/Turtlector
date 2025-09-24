@@ -56,21 +56,22 @@ body {
   padding: 40px;
 }
 
-/* Logo taws */
-.logo-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 40px;
+/* Contenedor 3D */
+.tortuga-3d-container {
+  width: 400px;
+  height: 400px;
+  margin: 0 auto 40px auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
 }
 
-.taws-logo-image {
-  max-width: 300px;
-  max-height: 300px;
-  width: auto;
-  height: auto;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  object-fit: contain;
+.scene-3d-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 /* Botón del micrófono */
@@ -118,3 +119,4 @@ body {
   height: 24px;
   fill: white;
 }
+
