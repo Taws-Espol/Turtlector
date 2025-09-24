@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { Group } from 'three'
+import { Group, LoopRepeat } from 'three'
 
 interface Tortuga3DProps {
   isTalking?: boolean
@@ -10,52 +10,62 @@ interface Tortuga3DProps {
 const Tortuga3D: React.FC<Tortuga3DProps> = ({ isTalking = false }) => {
   const groupRef = useRef<Group>(null)
   
-  // Cargar el modelo con manejo de errores
-  const { scene, animations } = useGLTF('/Standby.glb')
-  const { actions } = useAnimations(animations, groupRef)
+  // Cargar el modelo según el estado
+  const { scene: standbyScene, animations: standbyAnimations } = useGLTF('/Standby.glb')
+  const { scene: talkingScene, animations: talkingAnimations } = useGLTF('/Talking.glb')
+  
+  // Usar el modelo y animaciones según el estado
+  const currentScene = isTalking ? talkingScene : standbyScene
+  const currentAnimations = isTalking ? talkingAnimations : standbyAnimations
+  const { actions } = useAnimations(currentAnimations, groupRef)
 
-  // Validar que el modelo se cargó correctamente
+  // Validar que los modelos se cargaron correctamente
   useEffect(() => {
-    if (scene) {
-      console.log('✅ Modelo Standby cargado correctamente:', scene)
-      console.log('📊 Animaciones disponibles:', animations.map(anim => anim.name))
+    if (currentScene) {
+      console.log(`✅ Modelo ${isTalking ? 'Talking' : 'Standby'} cargado correctamente:`, currentScene)
+      console.log('📊 Animaciones disponibles:', currentAnimations.map(anim => anim.name))
     } else {
-      console.error('❌ Error al cargar el modelo Standby')
+      console.error(`❌ Error al cargar el modelo ${isTalking ? 'Talking' : 'Standby'}`)
     }
-  }, [scene, animations])
+  }, [currentScene, currentAnimations, isTalking])
 
-  // Aplicar animación de Standby automáticamente
+  // Aplicar animación según el estado
   useEffect(() => {
-    if (actions && Object.keys(actions).length > 0) {
-      console.log('🎬 Animaciones disponibles:', Object.keys(actions))
-      
-      // Buscar animación de standby
-      const standbyAction = actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
-      
-      if (standbyAction) {
-        // Configurar loop infinito
-        standbyAction.setLoop(1, Infinity) // Loop infinito
-        standbyAction.setEffectiveWeight(1.0) // Peso completo
-        standbyAction.setEffectiveTimeScale(1.0) // Velocidad normal
-        standbyAction.play()
-        console.log('😴 Reproduciendo animación de Standby en bucle infinito:', standbyAction.getClip().name)
-      }
-    }
-  }, [actions])
+    if (!actions || Object.keys(actions).length === 0) return
+    console.log('🎬 Animaciones disponibles:', Object.keys(actions))
 
-  // Asegurar que la animación se mantenga en bucle
+    // Detener cualquier animación previa
+    Object.values(actions).forEach(action => action?.stop())
+
+    // Elegir animación según estado
+    const targetAction = isTalking
+      ? actions['Talking'] || actions['talk'] || actions['speak'] || actions['idle'] || Object.values(actions)[0]
+      : actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
+
+    if (targetAction) {
+      targetAction.reset()
+      targetAction.setLoop(LoopRepeat, Infinity)
+      targetAction.setEffectiveWeight(1.0)
+      targetAction.setEffectiveTimeScale(1.0)
+      targetAction.play()
+      console.log(`🎭 Reproduciendo animación ${isTalking ? 'Talking' : 'Standby'} en bucle infinito:`, targetAction.getClip().name)
+    }
+  }, [actions, isTalking])
+
+  // Asegurar continuidad del bucle si el mixer detiene la acción
   useFrame(() => {
-    if (actions && Object.keys(actions).length > 0) {
-      const standbyAction = actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
-      if (standbyAction && !standbyAction.isRunning()) {
-        standbyAction.play()
-      }
+    if (!actions || Object.keys(actions).length === 0) return
+    const targetAction = isTalking
+      ? actions['Talking'] || actions['talk'] || actions['speak'] || actions['idle'] || Object.values(actions)[0]
+      : actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
+    if (targetAction && !targetAction.isRunning()) {
+      targetAction.play()
     }
   })
 
   return (
     <group ref={groupRef} position={[0, -2, 0]} scale={[1.5, 1.5, 1.5]} rotation={[0, -Math.PI / 2, 0]}>
-      <primitive object={scene} />
+      <primitive object={currentScene} />
     </group>
   )
 }
