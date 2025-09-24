@@ -1,73 +1,99 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { Group, LoopRepeat } from 'three'
 
+type AnimationState = 'standby' | 'loading' | 'talking'
+
 interface Tortuga3DProps {
-  isTalking?: boolean
+  animationState?: AnimationState
 }
 
-const Tortuga3D: React.FC<Tortuga3DProps> = ({ isTalking = false }) => {
+const animationActionPriority: Record<AnimationState, string[]> = {
+  standby: ['Standby', 'idle', 'default'],
+  loading: ['Mano', 'MANO', 'Loading', 'Cargando', 'loading', 'idle', 'default'],
+  talking: ['Talking', 'talk', 'speak', 'idle', 'default'],
+}
+
+const Tortuga3D: React.FC<Tortuga3DProps> = ({ animationState = 'standby' }) => {
   const groupRef = useRef<Group>(null)
-  
-  // Cargar el modelo según el estado
+
   const { scene: standbyScene, animations: standbyAnimations } = useGLTF('/Standby.glb')
+  const { scene: loadingScene, animations: loadingAnimations } = useGLTF('/MANO.glb')
   const { scene: talkingScene, animations: talkingAnimations } = useGLTF('/Talking.glb')
-  
-  // Usar el modelo y animaciones según el estado
-  const currentScene = isTalking ? talkingScene : standbyScene
-  const currentAnimations = isTalking ? talkingAnimations : standbyAnimations
+
+  // Clonamos las escenas una sola vez para que no se pisen entre estados
+  const sceneByState = useMemo(() => ({
+    standby: standbyScene.clone(),
+    loading: loadingScene.clone(),
+    talking: talkingScene.clone(),
+  }), [standbyScene, loadingScene, talkingScene])
+
+  const animationsByState = useMemo(() => ({
+    standby: standbyAnimations,
+    loading: loadingAnimations,
+    talking: talkingAnimations,
+  }), [standbyAnimations, loadingAnimations, talkingAnimations])
+
+  const currentScene = sceneByState[animationState]
+  const currentAnimations = animationsByState[animationState]
+
   const { actions } = useAnimations(currentAnimations, groupRef)
 
-  // Validar que los modelos se cargaron correctamente
   useEffect(() => {
     if (currentScene) {
-      console.log(`✅ Modelo ${isTalking ? 'Talking' : 'Standby'} cargado correctamente:`, currentScene)
-      console.log('📊 Animaciones disponibles:', currentAnimations.map(anim => anim.name))
+      console.log(`[Tortuga3D] Modelo ${animationState} cargado`, currentScene)
+      console.log('[Tortuga3D] Animaciones disponibles:', currentAnimations.map(anim => anim.name))
     } else {
-      console.error(`❌ Error al cargar el modelo ${isTalking ? 'Talking' : 'Standby'}`)
+      console.error(`[Tortuga3D] Error al cargar el modelo ${animationState}`)
     }
-  }, [currentScene, currentAnimations, isTalking])
+  }, [animationState, currentScene, currentAnimations])
 
-  // Aplicar animación según el estado
   useEffect(() => {
     if (!actions || Object.keys(actions).length === 0) return
-    console.log('🎬 Animaciones disponibles:', Object.keys(actions))
 
-    // Detener cualquier animación previa
     Object.values(actions).forEach(action => action?.stop())
 
-    // Elegir animación según estado
-    const targetAction = isTalking
-      ? actions['Talking'] || actions['talk'] || actions['speak'] || actions['idle'] || Object.values(actions)[0]
-      : actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
+    const priorities = animationActionPriority[animationState]
+    const targetAction =
+      priorities.map(name => actions[name]).find(action => action) || Object.values(actions)[0]
 
     if (targetAction) {
       targetAction.reset()
       targetAction.setLoop(LoopRepeat, Infinity)
-      targetAction.setEffectiveWeight(1.0)
-      targetAction.setEffectiveTimeScale(1.0)
+      targetAction.setEffectiveWeight(1)
+      targetAction.setEffectiveTimeScale(1)
       targetAction.play()
-      console.log(`🎭 Reproduciendo animación ${isTalking ? 'Talking' : 'Standby'} en bucle infinito:`, targetAction.getClip().name)
+      console.log(`[Tortuga3D] Reproduciendo animacion ${animationState}:`, targetAction.getClip().name)
     }
-  }, [actions, isTalking])
+  }, [actions, animationState])
 
-  // Asegurar continuidad del bucle si el mixer detiene la acción
   useFrame(() => {
     if (!actions || Object.keys(actions).length === 0) return
-    const targetAction = isTalking
-      ? actions['Talking'] || actions['talk'] || actions['speak'] || actions['idle'] || Object.values(actions)[0]
-      : actions['Standby'] || actions['idle'] || actions['default'] || Object.values(actions)[0]
+
+    const priorities = animationActionPriority[animationState]
+    const targetAction =
+      priorities.map(name => actions[name]).find(action => action) || Object.values(actions)[0]
+
     if (targetAction && !targetAction.isRunning()) {
       targetAction.play()
     }
   })
 
   return (
-    <group ref={groupRef} position={[0, -2, 0]} scale={[1.5, 1.5, 1.5]} rotation={[0, -Math.PI / 2, 0]}>
+    <group
+      ref={groupRef}
+      position={[0, -2, 0]}
+      scale={[1.5, 1.5, 1.5]}
+      rotation={[0, -Math.PI / 2, 0]}
+    >
       <primitive object={currentScene} />
     </group>
   )
 }
+
+useGLTF.preload('/Standby.glb')
+useGLTF.preload('/MANO.glb')
+useGLTF.preload('/Talking.glb')
 
 export default Tortuga3D
