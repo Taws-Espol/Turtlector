@@ -20,6 +20,13 @@ Una versión tortuga del sobrero seleccionador para saber a que facultad y a que
 - **Build Tool**: Vite
 - **Styling**: CSS/Styled Components
 
+### Servicio Gemini AI
+- **Análisis de Imágenes**: Integración completa con Google Gemini para análisis educativo
+- **Formatos Soportados**: JPG, JPEG, PNG, GIF, BMP, WEBP
+- **Respuestas Estructuradas**: API con manejo robusto de errores y metadatos detallados
+- **Health Checks**: Monitoreo del estado del servicio y configuración
+- **Documentación**: Ejemplos completos de integración frontend y backend
+
 ##  Estructura del Proyecto
 
 ```
@@ -107,6 +114,36 @@ WHISPER_MODEL=base
 UPLOAD_DIR=uploads
 MAX_FILE_SIZE=10485760
 ```
+
+##  API Endpoints
+
+### Análisis de Imágenes con Gemini
+
+**POST** `/analyze-image`
+- Analiza imágenes usando Google Gemini AI
+- **Parámetros**: 
+  - `file`: Archivo de imagen (JPG, JPEG, PNG, GIF, BMP, WEBP)
+  - `prompt`: Texto descriptivo del análisis deseado
+- **Respuesta**: Análisis estructurado con metadatos y manejo de errores
+
+```bash
+# Ejemplo con curl
+curl -X POST "http://localhost:8000/analyze-image" \
+     -F "file=@imagen.jpg" \
+     -F "prompt=Analiza esta imagen educativa"
+```
+
+### Health Checks
+
+**GET** `/health` - Estado general de la API
+
+**GET** `/health/gemini` - Estado específico del servicio Gemini
+
+### Documentación Interactiva
+
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Ejemplos de Integración**: `backend/docs/gemini_integration_examples.md`
 
 ##  Documentación de APIs y Tecnologías
 
