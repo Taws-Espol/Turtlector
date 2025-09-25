@@ -7,16 +7,16 @@ from PIL import Image
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
 
-# --- Configuración del Modelo Gemini ---
+# --- ConfiguraciÃ³n del Modelo Gemini ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Validar que la API Key esté configurada
+# Validar que la API Key estÃ© configurada
 if not GEMINI_API_KEY:
-    raise ValueError("No se encontró la variable  GEMINI_API_KEY. Asegúrate de que está en tu archivo .env")
+    raise ValueError("No se encontrÃ³ la variable  GEMINI_API_KEY. AsegÃºrate de que estÃ¡ en tu archivo .env")
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Usamos un modelo optimizado para visión y texto
+# Usamos un modelo optimizado para visiÃ³n y texto
 
 model = genai.GenerativeModel('gemini-1.5-flash')
 
@@ -26,7 +26,7 @@ def analyze_image_with_gemini(image_path: str, prompt: str) -> str | None:
 
     Args:
         image_path (str): La ruta completa al archivo de la imagen que se va a analizar.
-        prompt (str): La instrucción o pregunta que se le hará al modelo sobre la imagen.
+        prompt (str): La instrucciÃ³n o pregunta que se le harÃ¡ al modelo sobre la imagen.
 
     Returns:
         El texto generado por el modelo como respuesta, o None si ocurre un error.
@@ -49,5 +49,5 @@ def analyze_image_with_gemini(image_path: str, prompt: str) -> str | None:
 
     except Exception as e:
         # Capturar cualquier otro error durante el proceso (ej. error de API, imagen corrupta)
-        print(f" Ocurrió un error al procesar con Gemini: {e}")
+        print(f" OcurriÃ³ un error al procesar con Gemini: {e}")
         return None

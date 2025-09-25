@@ -1,42 +1,179 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Reset y configuración base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+}
+
+/* Contenedor principal */
+.turtlector-app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #1A1E2C 0%, #566492 100%);
+}
+
+/* Header azul */
+.header {
+    background: #0066AD;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.app-title {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+    color: white;
+    font-size: 2rem;
+    font-weight: 300;
+    font-style: italic;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Contenido principal */
+.main-content {
+    flex: 1;
+    display: flex;
+    align-items: center; /* Centra el layout-container verticalmente */
+    justify-content: center; /* Centra el layout-container horizontalmente */
+    position: relative;
+    padding: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* --- Contenedor 3D más pequeño y sin transform --- */
+.tortuga-3d-container {
+    width: 350px; /* Más pequeño */
+    height: 350px; /* Más pequeño */
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
 }
 
-.card {
-  padding: 2em;
+.scene-3d-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
 }
 
-.read-the-docs {
-  color: #888;
+/* Botón del micrófono */
+.microphone-button {
+    position: absolute;
+    bottom: 40px;
+    left: 50%; /* Centrado horizontalmente */
+    transform: translateX(-50%); /* Ajuste fino para centrar */
+    width: 60px;
+    height: 60px;
+    background: #0066AD;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 102, 173, 0.4);
+    transition: all 0.3s ease;
+    z-index: 20;
+}
+
+    .microphone-button:hover {
+        transform: translateX(-50%) scale(1.1);
+    }
+
+    .microphone-button.recording {
+        background: #dc3545;
+        animation: pulse 1s infinite;
+    }
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
+
+.microphone-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+/* --- Se eliminan las reglas de .interaction-wrapper y .dialogue-container --- */
+
+
+/* Contenedor principal para el layout de dos columnas */
+.layout-container {
+    display: flex;
+    align-items: flex-start; /* Alinea las columnas en la parte superior */
+    gap: 40px; /* Espacio entre la columna izquierda y derecha */
+    width: 100%;
+    max-width: 1200px; /* Un ancho máximo para que no se estire demasiado en pantallas grandes */
+    justify-content: center;
+}
+
+/* Columna izquierda: Tortuga y texto de usuario */
+.left-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Espacio entre la tortuga y el cuadro de texto de abajo */
+    width: 350px; /* Fija el ancho de la columna al mismo de la tortuga */
+}
+
+/* Columna derecha: Respuesta de la tortuga */
+.right-column {
+    display: flex;
+    flex: 1; /* Permite que esta columna ocupe el espacio restante */
+}
+
+/* Estilo base para ambos cuadros de diálogo */
+.dialogue-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    /* Esto fuerza al texto a saltar de línea si no cabe */
+    overflow-wrap: break-word;
+}
+
+/* Cuadro de texto del usuario debajo de la tortuga */
+.user-text-box {
+    width: 100%; /* Ocupa el mismo ancho que la tortuga */
+    min-height: 120px;
+    max-height: 200px; /* Altura máxima antes de que aparezca el scroll */
+    overflow-y: auto; /* Muestra el scroll vertical SÓLO si es necesario */
+}
+
+/* Cuadro de texto de la respuesta de la tortuga a la derecha */
+.turtle-response-box {
+    width: 100%;
+    min-height: 300px; /* Misma altura que la tortuga + cuadro de usuario */
 }
