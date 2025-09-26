@@ -16,6 +16,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str = Field(..., description="AI response")
+    audiob64: str = Field(..., description="AI audio response")
     conversation_id: str = Field(..., description="Conversation ID")
     is_complete: bool = Field(default=False, description="Whether the conversation is complete")
     recommended_career: Optional[str] = Field(None, description="Recommended career if conversation is complete")
@@ -33,26 +34,13 @@ class TranscriptionResponse(BaseModel):
     processing_time: Optional[float] = Field(None, description="Processing time in seconds")
 
 
-class ImageAnalysisRequest(BaseModel):
-    prompt: str = Field(..., description="Prompt for image analysis")
-
-
-class ImageAnalysisResponse(BaseModel):
-    analysis: str = Field(..., description="Analysis result from Gemini")
-    filename: str = Field(..., description="Uploaded filename")
-
-
 class HealthResponse(BaseModel):
     status: str = Field(..., description="API status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(default_factory=datetime.now)
-
 
 class ErrorResponse(BaseModel):
     error: str = Field(..., description="Error message")
     detail: Optional[str] = Field(None, description="Error details")
-    timestamp: datetime = Field(default_factory=datetime.now)
-
 
 class CareerRecommendation(BaseModel):
     career: str = Field(..., description="Recommended career name")

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
+import base64
+from fastapi import APIRouter, HTTPException
 from typing import Dict, List
 import uuid
 import re
@@ -13,15 +14,17 @@ from app.models.schemas import (
 from app.config.settings import settings
 import os
 from dotenv import load_dotenv
+from app.services.tts_service import TTSService
 
 load_dotenv()
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 conversations: Dict[str, List[ChatMessage]] = {}
+tts = TTSService()
 
 def extract_career_recommendation(response_text: str) -> tuple[bool, str, str]:
     """
@@ -37,16 +40,6 @@ def extract_career_recommendation(response_text: str) -> tuple[bool, str, str]:
         return True, faculty, career
 
     return False, "", ""
-
-def count_questions_in_conversation(messages: List[ChatMessage]) -> int:
-    """
-    Cuenta las preguntas hechas por el asistente en la conversación.
-    """
-    question_count = 0
-    for message in messages:
-        if message.role == "assistant" and "?" in message.content:
-            question_count += message.content.count("?")
-    return question_count
 
 async def generate_gemini_response(conversation_history: List[ChatMessage], user_message: str) -> str:
     """
@@ -78,7 +71,10 @@ async def send_message(request: ChatRequest):
     Envía un mensaje al chat y recibe respuesta del Sombrero Seleccionador.
     """
     try:
-        conversation_id = request.conversation_id or str(uuid.uuid4())
+        if request.conversation_id == "":
+            conversation_id = str(uuid.uuid4())
+        else:
+            conversation_id = request.conversation_id
 
         if conversation_id not in conversations:
             conversations[conversation_id] = []
@@ -86,20 +82,26 @@ async def send_message(request: ChatRequest):
         user_message = ChatMessage(role="user", content=request.message)
         conversations[conversation_id].append(user_message)
 
-        question_count = count_questions_in_conversation(conversations[conversation_id])
-
         ai_response = await generate_gemini_response(
             conversations[conversation_id],
             request.message
         )
+        ai_response = ai_response.replace('*', '')
 
         assistant_message = ChatMessage(role="assistant", content=ai_response)
         conversations[conversation_id].append(assistant_message)
 
         is_complete, faculty, career = extract_career_recommendation(ai_response)
 
+        audio_file = tts.synthesize_and_save(ai_response)
+        with open(audio_file, 'rb') as f:
+            audio_bytes = f.read()
+
+        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+
         return ChatResponse(
             response=ai_response,
+            audiob64=audio_base64,
             conversation_id=conversation_id,
             is_complete=is_complete,
             recommended_career=career if is_complete else None,
@@ -119,28 +121,6 @@ async def get_conversation(conversation_id: str):
 
     return conversations[conversation_id]
 
-@router.post("/conversation/new")
-async def new_conversation():
-    """
-    Inicia una nueva conversación.
-    """
-    conversation_id = str(uuid.uuid4())
-    conversations[conversation_id] = []
-
-    welcome_message = """¡Hola! Soy el Sombrero Seleccionador de ESPOL. <
-
-Estoy aquí para ayudarte a descubrir la carrera universitaria perfecta para ti. Te haré algunas preguntas sobre tus intereses, habilidades y sueños profesionales.
-
-¿Estás listo para comenzar esta aventura? ¡Cuéntame un poco sobre ti y qué te trae aquí!"""
-
-    assistant_message = ChatMessage(role="assistant", content=welcome_message)
-    conversations[conversation_id].append(assistant_message)
-
-    return {
-        "conversation_id": conversation_id,
-        "message": "Nueva conversación iniciada",
-        "welcome_message": welcome_message
-    }
 
 @router.delete("/conversation/{conversation_id}")
 async def delete_conversation(conversation_id: str):
