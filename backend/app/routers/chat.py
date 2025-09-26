@@ -86,6 +86,7 @@ async def send_message(request: ChatRequest):
             conversations[conversation_id],
             request.message
         )
+        ai_response = ai_response.replace('*', '')
 
         assistant_message = ChatMessage(role="assistant", content=ai_response)
         conversations[conversation_id].append(assistant_message)
