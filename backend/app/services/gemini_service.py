@@ -89,19 +89,19 @@ def chat_with_tortuga():
         {"role": "user", "parts": [prompt_system]},
         {"role": "model", "parts": ["¡Hola!"]}
     ])
-    
+
     print("¡Bienvenido al proceso de selección vocacional de la ESPOL!")
     print("Escribe tu saludo para comenzar la entrevista.")
-    
+
     while True:
         user_input = input("Tú: ") # Entrada del usuario desde FRONTEND
-        
+
         response = chat.send_message(user_input)
-        
+
         print(f"Tortuga: {response.text}") # response.text se envía al FRONTEND y a su vez hace que la tortuga hable
-        
-        
-        
+
+
+
         # Si la tortuga se despide, el ciclo termina
         if "despide" in response.text.lower() or "adiós" in response.text.lower():
             break

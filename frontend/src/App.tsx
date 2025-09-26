@@ -19,6 +19,7 @@ function App() {
     // El estado 'animationState' ahora se puede derivar directamente de 'listening'
     const [userText, setUserText] = useState('Aquí aparecerá el texto que hables para que la tortuga lo lea...')
     const [turtleText, setTurtleText] = useState('Aquí aparecerá la respuesta de la tortuga...')
+    const [conversationId, setConversationId] = useState('')
 
     // --- useEffect para actualizar el cuadro de texto ---
     // Este "escucha" los cambios en `transcript` y actualiza nuestro estado `userText`.
@@ -29,13 +30,38 @@ function App() {
     }, [transcript])
 
     // --- Lógica del botón del micrófono totalmente renovada ---
-    const handleMicrophoneClick = () => {
+    const handleMicrophoneClick = async () => {
         if (listening) {
             SpeechRecognition.stopListening() // Si ya está escuchando, lo detenemos
+
+            if (transcript.trim()) {
+                console.log(conversationId)
+                try {
+                    fetch("http://localhost:8000/chat/send", {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: transcript, conversation_id: conversationId })
+                    })
+                    .then( res => res.json() )
+                    .then( data => {
+                        setTurtleText(data.response);
+                        if (data.is_complete) {
+                            setConversationId('')
+                        } else {
+                            setConversationId(data.conversation_id)
+                        }
+                        const audio = new Audio(`data:audio/mp3;base64,${data.audiob64}`);
+                        audio.play();
+                    })
+                } catch (e) {
+                    console.error('Error sending message to backend:', e)
+                    setTurtleText('¡Ups! Hubo un error al comunicarse con la tortuga.')
+                }
+            }
         } else {
             resetTranscript() // Borramos el texto anterior
             setUserText('') // Limpiamos el cuadro de texto visualmente
-            
+
             SpeechRecognition.startListening({ continuous: true, language: 'es-ES' })
         }
     }

@@ -37,7 +37,7 @@ def validate_audio_file(file: UploadFile) -> bool:
     """
     Valida que el archivo sea un formato de audio soportado.
     """
-    allowed_extensions = [".mp3", ".wav", ".m4a", ".ogg", ".flac", ".webm", ".mp4"]
+    allowed_extensions = [".mp3", ".wav"]
     file_extension = Path(file.filename).suffix.lower()
     return file_extension in allowed_extensions
 

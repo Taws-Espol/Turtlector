@@ -9,34 +9,34 @@ class Settings(BaseSettings):
     app_name: str = "Turtlector API"
     app_version: str = "1.0.0"
     debug: bool = False
-    
+
     # Server configuration
     host: str = "0.0.0.0"
     port: int = 8000
     reload: bool = False
-    
+
     # CORS configuration
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://frontend", "http://localhost"]
+    cors_origins: List[str] = ["*"]
     cors_credentials: bool = True
     cors_methods: List[str] = ["*"]
     cors_headers: List[str] = ["*"]
-    
+
     # API Keys
     gemini_api_key: str = ""
     openai_api_key: str = ""
-    
+    google_application_credentials: str = ""
+
     # Whisper configuration
     whisper_model: str = "base"
     whisper_device: str = "cpu"
-    
+
     # File upload configuration
     upload_dir: str = "uploads"
     max_file_size: int = 10485760  # 10MB
     allowed_extensions: List[str] = [
-        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
-        ".mp3", ".wav", ".m4a", ".ogg", ".flac"
+        ".mp3", ".wav"
     ]
-    
+
     prompt_system: str = """
         Eres la Tortuga Seleccionadora de la Escuela Superior Politécnica del Litoral (ESPOL) en Ecuador.
         Tu misión es entrevistar a un estudiante, hacerle preguntas estratégicas sobre sus intereses, habilidades y motivaciones, y al final determinar la carrera universitaria más adecuada para él dentro de la ESPOL.
@@ -108,8 +108,6 @@ class Settings(BaseSettings):
     redis_port: int = 6379
     redis_db: int = 0
     redis_password: str = ""
-    
-
 
 
     @field_validator("upload_dir")
@@ -117,7 +115,7 @@ class Settings(BaseSettings):
     def create_upload_dir(cls, v):
         os.makedirs(v, exist_ok=True)
         return v
-    
+
     model_config = {
         "env_file": ".env",
         "case_sensitive": False,
