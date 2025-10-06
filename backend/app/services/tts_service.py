@@ -1,6 +1,7 @@
 import os
 from google.cloud import texttospeech
 from pathlib import Path
+from app.config.settings import settings
 
 class TTSService:
     """
@@ -32,6 +33,10 @@ class TTSService:
                              Puede ser un nombre completo (ej: "es-ES-Neural2-A") o
                              un alias de las voces recomendadas.
         """
+        # Configurar la variable de entorno si está definida en settings
+        if settings.google_application_credentials:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.google_application_credentials
+
         self.client = texttospeech.TextToSpeechClient()
         self.output_folder = output_folder
         self.voice_name = voice_name or "es-US-Neural2-B"  # Voz por defecto: español masculino Estados Unidos
