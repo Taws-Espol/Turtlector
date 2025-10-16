@@ -111,7 +111,7 @@ function App() {
             </div>
 
             {/* NUEVO: línea con el eslogan */}
-            <div className="pill-line">BE DIFFERENT&nbsp;&nbsp;BE TAW</div>
+            <div className="pill-line">BE DIFFERENT&nbsp;&nbsp;BE TAWS</div>
 
             <span className="pill-dot" />
         </a>
