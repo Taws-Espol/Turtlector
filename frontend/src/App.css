@@ -289,3 +289,242 @@ body{overflow:hidden}
 }
 .footer a{ color:#d3ecff; text-decoration:none; font-weight:600 }
 .footer a:hover{ color:#e6f7ff; text-decoration:underline }
+
+/* ===== NUEVO LAYOUT CORREGIDO ===== */
+.new-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  grid-template-rows: auto auto;
+  gap: 40px 60px;
+  align-items: start;
+  justify-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* COLUMNA IZQUIERDA: tortuga + micrófono */
+.new-layout .left-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Tortuga mantiene tamaño original */
+.new-layout .tortuga-3d-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Micrófono debajo */
+.new-layout .microphone-button {
+  position: static;
+  transform: none;
+  width: 70px;
+  height: 70px;
+  background: #0066AD;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,102,173,.4);
+  transition: all .3s ease;
+}
+
+/* COLUMNA DERECHA: cuadros grandes */
+.new-layout .right-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 40px;
+  width: 100%;
+}
+
+/* Tamaño original de los cuadros */
+.new-layout .dialogue-box {
+  width: 100%;
+  min-width: 400px;
+  min-height: 200px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1rem;
+}
+/* ===== ESTILOS DEL CHAT ===== */
+.chat-container {
+  width: 100%;
+  height: 600px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  border: 1px solid rgba(63, 224, 255, 0.2);
+  overflow: hidden;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.chat-history {
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Scrollbar personalizado */
+.chat-history::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.chat-history::-webkit-scrollbar-thumb {
+  background: rgba(63, 224, 255, 0.3);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: rgba(63, 224, 255, 0.5);
+}
+
+/* Mensaje vacío inicial */
+.chat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+  padding: 20px;
+}
+
+/* Contenedor de cada mensaje */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Etiqueta del mensaje */
+.message-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  padding-left: 4px;
+}
+
+/* Contenido del mensaje */
+.message-content {
+  padding: 16px 20px;
+  border-radius: 14px;
+  line-height: 1.6;
+  font-size: 1rem;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.message-content p {
+  margin: 0;
+}
+
+/* Estilos específicos para mensaje del usuario */
+.user-message .message-label {
+  color: #7af3ff;
+  text-align: left;
+}
+
+.user-message .message-content {
+  background: linear-gradient(135deg, 
+    rgba(63, 224, 255, 0.15) 0%, 
+    rgba(63, 224, 255, 0.08) 100%);
+  border: 1px solid rgba(63, 224, 255, 0.3);
+  border-left: 3px solid var(--neon);
+  box-shadow: 0 4px 12px rgba(63, 224, 255, 0.1);
+  align-self: flex-start;
+  max-width: 85%;
+}
+
+/* Estilos específicos para mensaje de la tortuga */
+.turtle-message .message-label {
+  color: #90a2c3;
+  text-align: left;
+}
+
+.turtle-message .message-content {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 3px solid #90a2c3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  align-self: flex-start;
+  max-width: 85%;
+}
+
+/* Animación de escritura */
+.typing .message-content {
+  animation: typingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes typingPulse {
+  0%, 100% {
+    border-left-color: var(--neon);
+    box-shadow: 0 4px 12px rgba(63, 224, 255, 0.1);
+  }
+  50% {
+    border-left-color: var(--neon-2);
+    box-shadow: 0 4px 16px rgba(63, 224, 255, 0.25);
+  }
+}
+
+/* Efecto hover en mensajes */
+.message-content:hover {
+  background: linear-gradient(135deg, 
+    rgba(63, 224, 255, 0.18) 0%, 
+    rgba(63, 224, 255, 0.1) 100%);
+  transform: translateX(2px);
+  transition: all 0.2s ease;
+}
+
+.turtle-message .message-content:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.12) 0%, 
+    rgba(255, 255, 255, 0.06) 100%);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .chat-container {
+    height: 500px;
+  }
+  
+  .message-content {
+    max-width: 95% !important;
+  }
+}
