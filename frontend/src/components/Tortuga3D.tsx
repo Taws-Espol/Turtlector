@@ -19,7 +19,7 @@ const Tortuga3D: React.FC<Tortuga3DProps> = ({ animationState = 'standby' }) => 
   const groupRef = useRef<Group>(null)
 
   // Cargar los 3 modelos correctos
-  const { scene: standbyScene, animations: standbyAnimations } = useGLTF('/Standby.glb')
+  const { scene: standbyScene, animations: standbyAnimations } = useGLTF('/tortuga.glb')
   const { scene: loadingScene, animations: loadingAnimations } = useGLTF('/cargando.glb') // Para escuchar
   const { scene: talkingScene, animations: talkingAnimations } = useGLTF('/MANO.glb') // Para hablar
 
