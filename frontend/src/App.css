@@ -1,179 +1,291 @@
-/* Reset y configuración base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* =============== Base =============== */
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg-1:#0b1120;
+  --bg-2:#0f1f3a;
+  --panel:#121a2e;
+  --text:#e6edf5;
+  --muted:#90a2c3;
+
+  /* Celeste neón */
+  --neon:#3fe0ff;
+  --neon-2:#7af3ff;
+  --neon-shadow: 0 0 12px rgba(63,224,255,.65), 0 0 28px rgba(63,224,255,.35);
+
+  /* para compatibilidad: edge ahora es celeste */
+  --edge: var(--neon);
+}
+body{overflow:hidden}
+
+/* =============== Fondo de la App =============== */
+.turtlector-app{
+  width:100vw; height:100vh; display:flex; flex-direction:column;
+  color:var(--text);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), transparent 25%),
+    radial-gradient(1200px 800px at 80% -10%, #1b2a4d 0%, transparent 60%),
+    radial-gradient(900px 700px at -10% 110%, #0e1a36 0%, transparent 60%),
+    linear-gradient(180deg,var(--bg-1),var(--bg-2));
 }
 
-body {
-    font-family: 'Arial', sans-serif;
-    overflow: hidden;
+/* =============== Encabezado =============== */
+/* línea  superior */
+.header-edge{
+  height:4px;
+  background: linear-gradient(90deg, var(--neon), var(--neon-2), var(--neon));
+  border-top-left-radius:18px;
+  border-top-right-radius:18px;
+  margin:12px 16px 0;
 }
 
-/* Contenedor principal */
-.turtlector-app {
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(180deg, #1A1E2C 0%, #566492 100%);
+/* contenedor del header */
+.header{
+  margin:0 16px;
+  padding:14px 18px;
+  border-radius:18px;
+  background:
+    radial-gradient(120% 140% at -10% -40%, rgba(255,255,255,.06), transparent 50%),
+    linear-gradient(90deg, rgba(255,255,255,.04), transparent 40%),
+    #122034;
+  border:1px solid #21324f;
+  box-shadow: 0 18px 40px -28px rgba(0,0,0,.8);
+  display:flex; align-items:center; justify-content:space-between;
 }
 
-/* Header azul */
-.header {
-    background: #0066AD;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+.brand{display:flex; align-items:center; gap:12px}
+
+/* logo simple */
+.logo-ring{
+  width:44px; height:44px; border-radius:999px;
+  border:2px solid var(--neon);
+  display:grid; place-items:center;
+  position:relative; overflow:hidden;
+  background: radial-gradient(120% 120% at 30% 30%,
+              rgba(63,224,255,.18), transparent 60%);
+  box-shadow:
+    0 0 14px rgba(63,224,255,.50),
+    inset 0 0 8px rgba(63,224,255,.25);
+}
+.logo-dot{
+  width:12px; height:12px; border-radius:999px;
+  background: var(--neon);
+  box-shadow:
+    0 0 10px rgba(63,224,255,.75),
+    0 0 18px rgba(63,224,255,.45);
 }
 
-.app-title {
-    color: white;
-    font-size: 2.5rem;
-    font-weight: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+
+/* TÍTULO interactivo */
+.app-title{
+  font-weight:800;
+  letter-spacing:.4px;
+  font-size:clamp(20px,2.6vw,30px);
+  line-height:1;
+  position:relative;
+  display:inline-block;
+  background: linear-gradient(90deg, #ffffff 0%, #e6f9ff 50%, #ffffff 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  /* sin brillos de caja */
+  text-shadow: 0 1px 0 rgba(255,255,255,.12);
+  transition: text-shadow .2s ease;
 }
 
-.logo {
-    color: white;
-    font-size: 2rem;
-    font-weight: 300;
-    font-style: italic;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+/* Hover: SOLO el texto brilla */
+.app-title:hover{
+  text-shadow:
+    0 0 8px rgba(63,224,255,.70),
+    0 0 22px rgba(63,224,255,.45);
 }
 
-/* Contenido principal */
-.main-content {
-    flex: 1;
-    display: flex;
-    align-items: center; /* Centra el layout-container verticalmente */
-    justify-content: center; /* Centra el layout-container horizontalmente */
-    position: relative;
-    padding: 20px;
+/* Pulso en click (opcional) */
+.app-title.active{
+  text-shadow:
+    0 0 12px rgba(63,224,255,.80),
+    0 0 32px rgba(63,224,255,.55);
 }
 
-/* --- Contenedor 3D más pequeño y sin transform --- */
-.tortuga-3d-container {
-    width: 350px; /* Más pequeño */
-    height: 350px; /* Más pequeño */
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+/* Subrayado celeste que se dibuja de izq→der en hover */
+.app-title::after{
+  content:"";
+  position:absolute;
+  left:0; right:0;
+  bottom:-6px;
+  height:3px;
+  border-radius:999px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--neon) 20%,
+    var(--neon-2) 50%,
+    var(--neon) 80%,
+    transparent 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .35s ease;
+  filter: drop-shadow(0 0 8px rgba(63,224,255,.55));
+  pointer-events:none;
+}
+.app-title:hover::after{ transform: scaleX(1); }
+@keyframes neonPulse{
+  0%{ box-shadow: 0 0 0 14px rgba(63,224,255,.18), var(--neon-shadow) }
+  100%{ box-shadow: 0 0 0 0 rgba(63,224,255,0), var(--neon-shadow) }
 }
 
-.scene-3d-container {
-    width: 100%;
-    height: 100%;
-    border-radius: 20px;
-    overflow: hidden;
+/* cápsula derecha */
+/* ======= PÍLDORA TAWS (link animado) ======= */
+/* ======= PÍLDORA TAWS (link animado celeste) ======= */
+.pill{
+  display:flex; align-items:center; gap:14px;
+  padding:10px 16px; border-radius:16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border:1px solid #243457; color:#cbd6ea; font-weight:700;
+  text-decoration:none; position:relative; overflow:hidden;
+  transition: transform .12s ease, box-shadow .25s ease, border-color .25s ease, filter .25s ease;
+}
+.pill:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px -12px rgba(63,224,255,.35);
+  border-color: rgba(63,224,255,.35);
+  filter: drop-shadow(0 0 6px rgba(63,224,255,.25));
 }
 
-/* Botón del micrófono */
-.microphone-button {
-    position: absolute;
-    bottom: 40px;
-    left: 50%; /* Centrado horizontalmente */
-    transform: translateX(-50%); /* Ajuste fino para centrar */
-    width: 60px;
-    height: 60px;
-    background: #0066AD;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 102, 173, 0.4);
-    transition: all 0.3s ease;
-    z-index: 20;
+/* shimmer celeste que barre el fondo */
+.pill::after{
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(120deg,
+    transparent 0%,
+    rgba(63,224,255,.08) 45%,
+    rgba(63,224,255,.18) 50%,
+    rgba(63,224,255,.08) 55%,
+    transparent 100%);
+  transform: translateX(-120%);
+  animation: pillShimmer 4.8s linear infinite;
+}
+@keyframes pillShimmer{
+  0%{ transform: translateX(-120%) }
+  100%{ transform: translateX(120%) }
 }
 
-    .microphone-button:hover {
-        transform: translateX(-50%) scale(1.1);
-    }
-
-    .microphone-button.recording {
-        background: #dc3545;
-        animation: pulse 1s infinite;
-    }
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-    }
+/* icono */
+.pill-logo{
+  width:34px; height:34px; border-radius:10px;
+  background:#0c1428; display:grid; place-items:center; overflow:hidden;
+  border:1px solid #2b3c66;
 }
 
-.microphone-icon {
-    width: 24px;
-    height: 24px;
-    fill: white;
+/* NUEVO: eslogan en una sola línea con gradiente celeste */
+.pill-line{
+  white-space:nowrap;
+  letter-spacing:.12em;
+  font-weight:900;
+  font-size:14px;
+  background: linear-gradient(90deg, #e6f9ff, var(--neon), #e6f9ff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow: 0 1px 0 rgba(255,255,255,.1);
+  transition: filter .2s ease, text-shadow .2s ease;
+}
+.pill:hover .pill-line{
+  filter: drop-shadow(0 0 10px rgba(63,224,255,.45));
+  text-shadow: 0 0 12px rgba(63,224,255,.65), 0 0 24px rgba(63,224,255,.35);
 }
 
-/* --- Se eliminan las reglas de .interaction-wrapper y .dialogue-container --- */
-
-
-/* Contenedor principal para el layout de dos columnas */
-.layout-container {
-    display: flex;
-    align-items: flex-start; /* Alinea las columnas en la parte superior */
-    gap: 40px; /* Espacio entre la columna izquierda y derecha */
-    width: 100%;
-    max-width: 1200px; /* Un ancho máximo para que no se estire demasiado en pantallas grandes */
-    justify-content: center;
+/* punto “online” celeste con ping */
+.pill-dot{
+  width:10px; height:10px; border-radius:999px; background:var(--neon);
+  position:relative; margin-left:4px; box-shadow:0 0 10px rgba(63,224,255,.7);
+}
+.pill-dot::after{
+  content:""; position:absolute; inset:0; border-radius:999px;
+  animation: ping 1.8s cubic-bezier(0,0,.2,1) infinite;
+  border:2px solid rgba(63,224,255,.45);
+}
+@keyframes ping{
+  0%{ transform: scale(.7); opacity:.9 }
+  70%{ transform: scale(1.8); opacity:0 }
+  100%{ opacity:0 }
 }
 
-/* Columna izquierda: Tortuga y texto de usuario */
-.left-column {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px; /* Espacio entre la tortuga y el cuadro de texto de abajo */
-    width: 350px; /* Fija el ancho de la columna al mismo de la tortuga */
+.user-text-box p{
+  transition: color .2s ease, text-shadow .2s ease;
+}
+.user-text-box p:hover{
+  color:#e8fbff;
+  text-shadow: 0 0 8px rgba(63,224,255,.55), 0 0 22px rgba(63,224,255,.35);
 }
 
-/* Columna derecha: Respuesta de la tortuga */
-.right-column {
-    display: flex;
-    flex: 1; /* Permite que esta columna ocupe el espacio restante */
+
+/* icono redondo del logo */
+.pill-logo{
+  width:34px; height:34px; border-radius:10px;
+  background:#0c1428; display:grid; place-items:center; overflow:hidden;
+  border:1px solid #2b3c66;
 }
 
-/* Estilo base para ambos cuadros de diálogo */
-.dialogue-box {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    font-size: 1.1rem;
-    line-height: 1.5;
-    /* Esto fuerza al texto a saltar de línea si no cabe */
-    overflow-wrap: break-word;
+/* bloque de textos */
+.pill-texts{display:flex; flex-direction:column; line-height:1}
+.pill-brand{font-weight:800; font-size:20px; letter-spacing:.3px}
+.pill-sub{font-size:11px; opacity:.7; margin-top:2px}
+
+/* punto “online” con animación ping */
+.pill-dot{
+  width:10px; height:10px; border-radius:999px; background:var(--edge);
+  position:relative; margin-left:6px; box-shadow:0 0 10px rgba(233,178,74,.7);
+}
+.pill-dot::after{
+  content:""; position:absolute; inset:0; border-radius:999px;
+  animation: ping 1.8s cubic-bezier(0,0,.2,1) infinite;
+  border:2px solid rgba(233,178,74,.45);
+}
+@keyframes ping{
+  0%{ transform: scale(.7); opacity:.9 }
+  70%{ transform: scale(1.8); opacity:0 }
+  100%{ opacity:0 }
 }
 
-/* Cuadro de texto del usuario debajo de la tortuga */
-.user-text-box {
-    width: 100%; /* Ocupa el mismo ancho que la tortuga */
-    min-height: 120px;
-    max-height: 200px; /* Altura máxima antes de que aparezca el scroll */
-    overflow-y: auto; /* Muestra el scroll vertical SÓLO si es necesario */
+/* texto “taws” con glow al hover */
+.pill:hover .pill-brand{
+  text-shadow: 0 0 12px rgba(63,224,255,.65), 0 0 28px rgba(63,224,255,.35);
+  filter: drop-shadow(0 0 6px rgba(63,224,255,.35));
 }
 
-/* Cuadro de texto de la respuesta de la tortuga a la derecha */
-.turtle-response-box {
-    width: 100%;
-    min-height: 300px; /* Misma altura que la tortuga + cuadro de usuario */
+
+/* =============== Resto de estilos  =============== */
+.main-content{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:20px}
+    
+.tortuga-3d-container{width:350px;height:350px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.3);background:linear-gradient(135deg,rgba(74,144,226,.1) 0%,rgba(255,107,53,.1) 100%)}
+.scene-3d-container{width:100%;height:100%;border-radius:20px;overflow:hidden}
+.microphone-button{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);width:60px;height:60px;background:#0066AD;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,102,173,.4);transition:all .3s ease;z-index:20}
+.microphone-button:hover{transform:translateX(-50%) scale(1.1)}
+.microphone-button.recording{background:#dc3545;animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(220,53,69,.7)}70%{box-shadow:0 0 0 10px rgba(220,53,69,0)}100%{box-shadow:0 0 0 0 rgba(220,53,69,0)}}
+.microphone-icon{width:24px;height:24px;fill:white}
+.layout-container{display:flex;align-items:flex-start;gap:40px;width:100%;max-width:1200px;justify-content:center}
+.left-column{display:flex;flex-direction:column;align-items:center;gap:20px;width:350px}
+.right-column{display:flex;flex:1}
+.dialogue-box{background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border-radius:15px;padding:20px;box-shadow:0 4px 15px rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);color:white;font-size:1.1rem;line-height:1.5;overflow-wrap:break-word}
+.user-text-box{width:100%;min-height:120px;max-height:200px;overflow-y:auto}
+.turtle-response-box{width:100%;min-height:300px}
+
+
+
+/* ======= FOOTER ======= */
+.footer-edge{
+  height:1px; margin:10px 16px 0; border-radius:999px;
+  background: linear-gradient(90deg, rgba(63,224,255,.45), transparent 40%, rgba(63,224,255,.45));
+  opacity:.5;
 }
+.footer{
+  margin:10px 16px 16px;
+  padding:12px 18px; border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  border:1px solid #21324f; color:#bcd1ff; font-size:13.5px;
+  display:flex; align-items:center; justify-content:center; /* centrado */
+}
+.footer a{ color:#d3ecff; text-decoration:none; font-weight:600 }
+.footer a:hover{ color:#e6f7ff; text-decoration:underline }
