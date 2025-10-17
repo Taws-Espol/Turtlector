@@ -15,6 +15,11 @@ from app.config.settings import settings
 import os
 from dotenv import load_dotenv
 from app.services.tts_service import TTSService
+import logging
+import traceback
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -46,6 +51,8 @@ async def generate_gemini_response(conversation_history: List[ChatMessage], user
     Genera respuesta usando Gemini con el historial de conversación.
     """
     try:
+        logger.info(f"Construyendo prompt con {len(conversation_history)} mensajes en historial")
+
         prompt_parts = [settings.prompt_system]
 
         for message in conversation_history:
@@ -58,12 +65,25 @@ async def generate_gemini_response(conversation_history: List[ChatMessage], user
         prompt_parts.append("Sombrero Seleccionador:")
 
         full_prompt = "\n\n".join(prompt_parts)
+        logger.info(f"Prompt construido, longitud: {len(full_prompt)} caracteres")
 
+        logger.info("Enviando request a Gemini API...")
         response = model.generate_content(full_prompt)
+
+        if not response or not response.text:
+            error_msg = "Gemini API no devolvió una respuesta válida"
+            logger.error(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg)
+
+        logger.info(f"Respuesta recibida de Gemini: {len(response.text)} caracteres")
         return response.text
 
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generando respuesta: {str(e)}")
+        error_msg = f"Error generando respuesta: {type(e).__name__}: {str(e)}"
+        logger.error(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.post("/send", response_model=ChatResponse)
 async def send_message(request: ChatRequest):
@@ -71,10 +91,14 @@ async def send_message(request: ChatRequest):
     Envía un mensaje al chat y recibe respuesta del Sombrero Seleccionador.
     """
     try:
+        logger.info(f"Procesando mensaje: {request.message[:50]}...")
+
         if request.conversation_id == "":
             conversation_id = str(uuid.uuid4())
+            logger.info(f"Nueva conversación creada: {conversation_id}")
         else:
             conversation_id = request.conversation_id
+            logger.info(f"Continuando conversación: {conversation_id}")
 
         if conversation_id not in conversations:
             conversations[conversation_id] = []
@@ -82,22 +106,29 @@ async def send_message(request: ChatRequest):
         user_message = ChatMessage(role="user", content=request.message)
         conversations[conversation_id].append(user_message)
 
+        logger.info("Generando respuesta de Gemini...")
         ai_response = await generate_gemini_response(
             conversations[conversation_id],
             request.message
         )
         ai_response = ai_response.replace('*', '')
+        logger.info(f"Respuesta generada: {ai_response[:50]}...")
 
         assistant_message = ChatMessage(role="assistant", content=ai_response)
         conversations[conversation_id].append(assistant_message)
 
         is_complete, faculty, career = extract_career_recommendation(ai_response)
+        logger.info(f"Recomendación extraída - Complete: {is_complete}, Career: {career}")
 
+        logger.info("Generando audio con TTS...")
         audio_file = tts.synthesize_and_save(ai_response)
+        logger.info(f"Audio generado: {audio_file}")
+
         with open(audio_file, 'rb') as f:
             audio_bytes = f.read()
 
         audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+        logger.info(f"Audio codificado en base64: {len(audio_base64)} caracteres")
 
         return ChatResponse(
             response=ai_response,
@@ -108,8 +139,15 @@ async def send_message(request: ChatRequest):
             recommended_faculty=faculty if is_complete else None
         )
 
+    except HTTPException as he:
+        logger.error(f"HTTPException: {he.detail}")
+        logger.error(traceback.format_exc())
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error procesando mensaje: {str(e)}")
+        error_msg = f"Error procesando mensaje: {type(e).__name__}: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.get("/conversation/{conversation_id}", response_model=List[ChatMessage])
 async def get_conversation(conversation_id: str):

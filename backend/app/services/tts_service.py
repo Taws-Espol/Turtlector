@@ -2,6 +2,9 @@ import os
 from google.cloud import texttospeech
 from pathlib import Path
 from app.config.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TTSService:
     """
@@ -78,7 +81,7 @@ class TTSService:
         next_num = max_num + 1
         return os.path.join(self.output_folder, f"respuesta_{next_num}.mp3")
 
-    def synthesize_and_save(self, text: str) -> str | None:
+    def synthesize_and_save(self, text: str) -> str:
         """
         Recibe un texto, genera el audio MP3 y lo guarda en un archivo.
 
@@ -86,13 +89,20 @@ class TTSService:
             text (str): El texto a convertir a voz
 
         Returns:
-            str: La ruta completa del archivo guardado, o None si hay error
+            str: La ruta completa del archivo guardado
+
+        Raises:
+            ValueError: Si el texto está vacío
+            Exception: Si hay un error al generar o guardar el audio
         """
         if not text or not text.strip():
-            print("Error: El texto no puede estar vacío.")
-            return None
+            error_msg = "El texto no puede estar vacío"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
 
         try:
+            logger.info(f"Generando audio para texto de {len(text)} caracteres")
+
             # Configuración de entrada
             synthesis_input = texttospeech.SynthesisInput(text=text.strip())
 
@@ -110,7 +120,7 @@ class TTSService:
                 audio_encoding=texttospeech.AudioEncoding.MP3
             )
 
-            print("Generando audio... (esto puede tardar unos segundos)")
+            logger.info("Llamando a Google TTS API...")
             response = self.client.synthesize_speech(
                 input=synthesis_input,
                 voice=voice,
@@ -119,15 +129,18 @@ class TTSService:
 
             # Obtiene el nombre del archivo y lo guarda
             output_path = self._get_next_filename()
+            logger.info(f"Guardando audio en: {output_path}")
+
             with open(output_path, "wb") as out:
                 out.write(response.audio_content)
 
-            print(f"¡Éxito! Audio guardado en: {output_path}")
+            logger.info(f"Audio guardado exitosamente: {output_path}")
             return output_path
 
         except Exception as e:
-            print(f"Error al generar audio: {str(e)}")
-            return None
+            error_msg = f"Error al generar audio: {type(e).__name__}: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(error_msg) from e
 
     def list_generated_files(self) -> list:
         """

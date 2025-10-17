@@ -216,3 +216,5 @@ __marimo__/
 !package.json
 !package-lock.json
 !tsconfig.json
+
+*.python-version
