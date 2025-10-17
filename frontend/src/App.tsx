@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react'
-// --- Reconocimiento de voz ---
+import { useEffect, useRef, useState } from 'react'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import Scene3D from './components/Scene3D'
 import './App.css'
 
+type Msg = {
+  id: string
+  role: 'user' | 'assistant'
+  text: string
+  ts: number
+}
+
 function App() {
-  // --- LÓGICA DE RECONOCIMIENTO DE VOZ ---
   const {
     transcript,
     listening,
@@ -13,141 +18,139 @@ function App() {
     browserSupportsSpeechRecognition
   } = useSpeechRecognition()
 
-  // --- ESTADOS DEL COMPONENTE ---
-  const [userText, setUserText] = useState('Aquí aparecerá el texto que hables para que la tortuga lo lea...')
-  const [turtleText, setTurtleText] = useState('Aquí aparecerá la respuesta de la tortuga...')
   const [conversationId, setConversationId] = useState('')
-
-  // Pulso neón del título
+  const [messages, setMessages] = useState<Msg[]>([])
   const [titlePulse, setTitlePulse] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
+  // efecto: pulso al click del título
   const pulse = () => {
     setTitlePulse(true)
     setTimeout(() => setTitlePulse(false), 700)
   }
 
-  // URL del backend (permite Vite env)
-  const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-
-  // --- Actualiza el texto del usuario a medida que habla ---
+  // autoscroll al final cuando haya nuevos mensajes
   useEffect(() => {
-    if (transcript) setUserText(transcript)
-  }, [transcript])
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages.length])
 
-  // --- Botón de micrófono ---
-  const handleMicrophoneClick = async () => {
-    if (listening) {
-      // Si ya está escuchando, detenemos
-      SpeechRecognition.stopListening()
-
-      if (transcript.trim()) {
-        try {
-          const res = await fetch(`${API_URL}/chat/send`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: transcript, conversation_id: conversationId })
-          })
-          const data = await res.json()
-          setTurtleText(data.response)
-
-          if (data.is_complete) setConversationId('')
-          else setConversationId(data.conversation_id)
-
-          if (data.audiob64) {
-            const audio = new Audio(`data:audio/mp3;base64,${data.audiob64}`)
-            audio.play().catch(() => {})
-          }
-        } catch (e) {
-          console.error('Error sending message to backend:', e)
-          setTurtleText('¡Ups! Hubo un error al comunicarse con la tortuga.')
-        }
-      }
-    } else {
-      // Preparar para escuchar
-      resetTranscript()
-      setUserText('')
-      SpeechRecognition.startListening({ continuous: true, language: 'es-ES' })
-    }
-  }
-
-  // --- Compatibilidad del navegador ---
+  // si el navegador no soporta STT
   if (!browserSupportsSpeechRecognition) {
     return <span>Lo sentimos, tu navegador no soporta el reconocimiento de voz.</span>
   }
 
+  const handleMicrophoneClick = async () => {
+    if (listening) {
+      // detener escucha y enviar lo capturado
+      SpeechRecognition.stopListening()
+      const text = transcript.trim()
+      if (!text) return
+
+      const userMsg: Msg = { id: crypto.randomUUID(), role: 'user', text, ts: Date.now() }
+      setMessages(prev => [...prev, userMsg])
+
+      try {
+        const res = await fetch(`${API_URL}/chat/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, conversation_id: conversationId })
+        })
+        const data = await res.json()
+
+        const botMsg: Msg = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          text: data.response ?? '…',
+          ts: Date.now()
+        }
+        setMessages(prev => [...prev, botMsg])
+
+        if (data.is_complete) setConversationId('')
+        else setConversationId(data.conversation_id)
+
+        if (data.audiob64) {
+          const audio = new Audio(`data:audio/mp3;base64,${data.audiob64}`)
+          audio.play().catch(() => {})
+        }
+      } catch (e) {
+        const errMsg: Msg = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          text: '¡Ups! Hubo un error al comunicarse con la tortuga.',
+          ts: Date.now()
+        }
+        setMessages(prev => [...prev, errMsg])
+        console.error(e)
+      } finally {
+        resetTranscript()
+      }
+    } else {
+      // empezar a escuchar
+      resetTranscript()
+      SpeechRecognition.startListening({ continuous: true, language: 'es-ES' })
+    }
+  }
+
   return (
     <div className="turtlector-app">
-      {/* borde dorado superior */}
       <div className="header-edge" />
 
-      {/* ENCABEZADO */}
       <header className="header">
         <div className="brand">
           <div className="logo-ring"><div className="logo-dot" /></div>
-          <h1
-            className={`app-title ${titlePulse ? 'active' : ''}`}
-            onClick={pulse}
-            title="✨"
-          >
-            Turtlector
-          </h1>
+          <h1 className={`app-title ${titlePulse ? 'active' : ''}`} onClick={pulse}>Turtlector</h1>
         </div>
 
-        {/* Píldora TAWS animada y clicable */}
         <a
-            className="pill"
-            href="https://taws.espol.edu.ec/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Abrir sitio de TAWS en una nueva pestaña"
-            >
-            <div className="pill-logo">
-                <img
-                src="/taws.svg"
-                width={30}
-                height={30}
-                alt="TAWS"
-                onError={(e) => { (e.target as HTMLImageElement).src = '/vite.svg' }}
-                />
-            </div>
-
-            {/* NUEVO: línea con el eslogan */}
-            <div className="pill-line">BE DIFFERENT&nbsp;&nbsp;BE TAWS</div>
-
-            <span className="pill-dot" />
+          className="pill"
+          href="https://taws.espol.edu.ec/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Abrir sitio de TAWS en una nueva pestaña"
+        >
+          <div className="pill-logo">
+            <img src="/taws.svg" width={30} height={30} alt="TAWS"
+              onError={(e)=>{ (e.target as HTMLImageElement).src='/vite.svg' }} />
+          </div>
+          <div className="pill-line">BE DIFFERENT&nbsp;&nbsp;BE TAWS</div>
+          <span className="pill-dot" />
         </a>
-
       </header>
 
-      {/* CONTENIDO PRINCIPAL */}
       <main className="main-content">
-        <div className="layout-container">
-          <div className="left-column">
+        <div className="layout-chat">
+          {/* izquierda: tortuga 3D */}
+          <aside className="left-col">
             <div className="tortuga-3d-container">
-              {/* La animación depende directamente de si estamos escuchando */}
               <Scene3D animationState={listening ? 'loading' : 'standby'} />
             </div>
+          </aside>
 
-            <div className="dialogue-box user-text-box">
-              <p>
-                {
-                  userText
-                    ? userText
-                    : (listening
-                        ? 'Escuchando… habla cerca del micrófono.'
-                        : 'Haz clic en el micrófono y empieza a hablar...')
-                }
-              </p>
+          {/* derecha: chat */}
+          <section className="chat-panel">
+            <div className="chat-header">
+              <span className="chat-title">Chat</span>
+              <span className={`chat-dot ${listening ? 'on' : ''}`} />
             </div>
-          </div>
 
-          <div className="right-column">
-            <div className="dialogue-box turtle-response-box">
-              <p>{turtleText}</p>
+            <div className="chat-list" ref={listRef}>
+              {messages.length === 0 ? (
+                <div className="chat-empty">
+                  Empieza a hablar con el micrófono para enviar tu mensaje.
+                </div>
+              ) : messages.map(m => (
+                <div key={m.id} className={`bubble-row ${m.role}`}>
+                  <div className={`bubble ${m.role}`}>
+                    <p>{m.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </section>
         </div>
 
-        {/* Botón del micrófono */}
         <button
           className={`microphone-button ${listening ? 'recording' : ''}`}
           onClick={handleMicrophoneClick}
@@ -160,12 +163,10 @@ function App() {
         </button>
       </main>
 
-      {/* FOOTER */}
       <div className="footer-edge" />
       <footer className="footer">
-            <span>© 2025 TAWS — Todos los derechos reservados.</span>
+        <span>© 2025 TAWS — Todos los derechos reservados.</span>
       </footer>
-
     </div>
   )
 }
